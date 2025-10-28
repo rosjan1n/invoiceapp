@@ -1,5 +1,7 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import { createCSRFMiddleware, addCSRFProtection } from "./lib/csrf";
+import { checkRateLimit } from "./lib/security";
 
 export default withAuth(
   function middleware(req) {
@@ -12,6 +14,24 @@ export default withAuth(
       return NextResponse.redirect(new URL("/sign-in", req.url));
     }
 
+    // Rate limiting
+    const clientIP = req.ip || req.headers.get("x-forwarded-for") || "unknown";
+    if (!checkRateLimit(clientIP, 100, 15 * 60 * 1000)) {
+      // Przekieruj do custom error page zamiast zwracać surowy JSON
+      const errorUrl = new URL("/error", req.url);
+      errorUrl.searchParams.set("error", "Too many requests");
+      errorUrl.searchParams.set("type", "rate_limit");
+      errorUrl.searchParams.set("retryAfter", "60");
+      return NextResponse.redirect(errorUrl);
+    }
+
+    // CSRF Protection
+    const csrfMiddleware = createCSRFMiddleware();
+    const csrfResponse = csrfMiddleware(req);
+    if (csrfResponse) {
+      return csrfResponse;
+    }
+
     // Dodaj nagłówki bezpieczeństwa
     const response = NextResponse.next();
 
@@ -20,14 +40,33 @@ export default withAuth(
     response.headers.set("X-Content-Type-Options", "nosniff");
     response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
     response.headers.set("X-XSS-Protection", "1; mode=block");
-
-    // CSP header
     response.headers.set(
-      "Content-Security-Policy",
-      "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://accounts.google.com; frame-src 'self' https://accounts.google.com;"
+      "Permissions-Policy",
+      "camera=(), microphone=(), geolocation=()"
+    );
+    response.headers.set(
+      "Strict-Transport-Security",
+      "max-age=31536000; includeSubDomains"
     );
 
-    return response;
+    // Ulepszony CSP header
+    response.headers.set(
+      "Content-Security-Policy",
+      "default-src 'self'; " +
+        "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://accounts.google.com https://www.gstatic.com; " +
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+        "img-src 'self' data: https: blob:; " +
+        "font-src 'self' data: https://fonts.gstatic.com; " +
+        "connect-src 'self' https://accounts.google.com https://api.resend.com; " +
+        "frame-src 'self' https://accounts.google.com; " +
+        "object-src 'none'; " +
+        "base-uri 'self'; " +
+        "form-action 'self'; " +
+        "frame-ancestors 'none';"
+    );
+
+    // Dodaj CSRF token do odpowiedzi
+    return addCSRFProtection(response);
   },
   {
     callbacks: {

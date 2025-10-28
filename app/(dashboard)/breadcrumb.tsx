@@ -15,21 +15,36 @@ import {
   Settings,
   BarChart3,
   Plus,
+  Receipt,
 } from "lucide-react";
 import React from "react";
 
 export default function DashboardBreadCrumb() {
-  const paths = usePathname();
-  const pathNames = paths.split("/").filter((path) => path);
+  const pathname = usePathname();
+  const pathNames = pathname.split("/").filter((path) => path);
 
-  const convertPathNames = (path: string) => {
-    if (path.length > 15) {
+  const convertPathNames = (
+    path: string,
+    index: number,
+    allPaths: string[]
+  ) => {
+    // Sprawdź czy to dynamiczny segment ID faktury
+    if (path.length > 15 && allPaths[index - 1] === "invoices") {
       return "Szczegóły faktury";
     }
+
     switch (path) {
       case "clients":
         return "Klienci";
+      case "invoices":
+        return "Faktury";
       case "create":
+        // Sprawdź kontekst - czy to tworzenie klienta czy faktury
+        if (allPaths[index - 1] === "clients") {
+          return "Nowy klient";
+        } else if (allPaths[index - 1] === "invoices") {
+          return "Nowa faktura";
+        }
         return "Kreator";
       case "settings":
         return "Ustawienia";
@@ -40,10 +55,12 @@ export default function DashboardBreadCrumb() {
     }
   };
 
-  const getPathIcon = (path: string) => {
+  const getPathIcon = (path: string, index: number, allPaths: string[]) => {
     switch (path) {
       case "clients":
         return <Users2 className="h-3 w-3" />;
+      case "invoices":
+        return <Receipt className="h-3 w-3" />;
       case "create":
         return <Plus className="h-3 w-3" />;
       case "settings":
@@ -51,7 +68,8 @@ export default function DashboardBreadCrumb() {
       case "analytics":
         return <BarChart3 className="h-3 w-3" />;
       default:
-        if (path.length > 15) {
+        // Sprawdź czy to ID faktury
+        if (path.length > 15 && allPaths[index - 1] === "invoices") {
           return <FileText className="h-3 w-3" />;
         }
         return null;
@@ -59,40 +77,44 @@ export default function DashboardBreadCrumb() {
   };
 
   return (
-    <Breadcrumb className="hidden md:flex">
+    <Breadcrumb className="flex">
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink
-            href={"/"}
-            className="flex items-center gap-1.5 hover:text-primary transition-colors"
+            href={"/invoices"}
+            className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium text-slate-600 dark:text-slate-300"
           >
-            <Home className="h-3 w-3" />
-            Strona główna
+            <span>Fakturly</span>
           </BreadcrumbLink>
         </BreadcrumbItem>
-        {pathNames.length !== 0 && <BreadcrumbSeparator />}
         {pathNames.map((path, index) => {
-          const href = pathNames.slice(0, index + 1).join("/");
+          // Pomiń "invoices" jeśli to pierwszy element, bo już mamy "Fakturly"
+          if (index === 0 && path === "invoices") {
+            return null;
+          }
+
+          const href = `/${pathNames.slice(0, index + 1).join("/")}`;
           const isLast = index === pathNames.length - 1;
-          const icon = getPathIcon(path);
+          const icon = getPathIcon(path, index, pathNames);
+          const displayName = convertPathNames(path, index, pathNames);
 
           return (
-            <React.Fragment key={index}>
+            <div key={index} className="contents">
+              <BreadcrumbSeparator className="text-slate-400 dark:text-slate-500" />
               <BreadcrumbItem>
                 <BreadcrumbLink
-                  href={`/${href}`}
-                  className={`flex items-center gap-1.5 transition-colors ${
+                  href={href}
+                  className={`flex items-center gap-2 transition-colors text-sm ${
                     isLast
-                      ? "text-foreground font-medium"
-                      : "hover:text-primary"
+                      ? "text-slate-900 dark:text-white font-semibold"
+                      : "text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium"
                   }`}
                 >
                   {icon}
-                  {convertPathNames(path)}
+                  <span>{displayName}</span>
                 </BreadcrumbLink>
               </BreadcrumbItem>
-              {!isLast && <BreadcrumbSeparator />}
-            </React.Fragment>
+            </div>
           );
         })}
       </BreadcrumbList>

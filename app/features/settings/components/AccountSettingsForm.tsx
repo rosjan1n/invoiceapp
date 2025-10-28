@@ -8,10 +8,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "./ui/card";
-import { Button } from "./ui/button";
-import { Switch } from "./ui/switch";
-import { Label } from "./ui/label";
+} from "../../../../components/ui/card";
+import { Button } from "../../../../components/ui/button";
+import { Switch } from "../../../../components/ui/switch";
+import { Label } from "../../../../components/ui/label";
 import { Palette, Mail, Monitor, Moon, Sun } from "lucide-react";
 
 export default function AccountSettingsForm() {

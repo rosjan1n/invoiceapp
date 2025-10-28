@@ -9,15 +9,15 @@ import {
   FormLabel,
   FormMessage,
   FormDescription,
-} from "./ui/form";
+} from "../../../../components/ui/form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { addressFormSchema } from "@/lib/validators/validators";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
-import { Separator } from "./ui/separator";
+import { Input } from "../../../../components/ui/input";
+import { Button } from "../../../../components/ui/button";
+import { Badge } from "../../../../components/ui/badge";
+import { Separator } from "../../../../components/ui/separator";
 import axios from "axios";
 import { useTransition, useState } from "react";
 import { toast } from "sonner";

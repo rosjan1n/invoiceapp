@@ -2,7 +2,7 @@ import "server-only";
 
 import { db } from "@/lib/prisma";
 import { getAuthSession } from "@/lib/auth";
-import { Client, Invoice } from "@prisma/client";
+import { Client } from "@prisma/client";
 import { InvoiceType } from "@/types/db";
 import {
   getCachedInvoices,
@@ -11,6 +11,7 @@ import {
   setCachedClients,
   getCachedAnalytics,
   setCachedAnalytics,
+  clearAllCache,
 } from "@/lib/cache";
 
 /* function delay(ms: number) {
@@ -20,7 +21,14 @@ import {
 
 export async function getInvoices(
   search: string,
-  offset: number
+  offset: number,
+  filters?: {
+    status?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+  }
 ): Promise<{
   invoices: InvoiceType[];
   newOffset: number | null;
@@ -30,6 +38,52 @@ export async function getInvoices(
   if (!session?.user)
     return { invoices: [], newOffset: null, totalInvoices: 0 };
   const user = session.user;
+
+  // Wyczyść cache po zmianie struktury danych (usunięcie pola file)
+  clearAllCache();
+
+  // Buduj where clause z filtrami
+  const buildWhereClause = () => {
+    const where: any = {
+      creatorId: user.id,
+    };
+
+    // Search filter
+    if (search) {
+      where.OR = [
+        { invoiceId: { contains: search, mode: "insensitive" } },
+        { client: { name: { contains: search, mode: "insensitive" } } },
+        { client: { email: { contains: search, mode: "insensitive" } } },
+      ];
+    }
+
+    // Status filter
+    if (filters?.status) {
+      where.status = filters.status;
+    }
+
+    // Date filters
+    if (filters?.dateFrom || filters?.dateTo) {
+      where.issuedAt = {};
+      if (filters.dateFrom) {
+        where.issuedAt.gte = new Date(filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        where.issuedAt.lte = new Date(filters.dateTo);
+      }
+    }
+
+    return where;
+  };
+
+  // Buduj orderBy clause
+  const buildOrderBy = () => {
+    if (filters?.sortBy) {
+      const order = filters.sortOrder === "desc" ? "desc" : "asc";
+      return { [filters.sortBy]: order as "asc" | "desc" };
+    }
+    return { issuedAt: "desc" as const };
+  };
 
   // Sprawdź cache
   const cached = getCachedInvoices(user.id, search, offset);
@@ -87,6 +141,18 @@ export async function getInvoices(
             creatorId: true,
           },
         },
+        creator: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phoneNumber: true,
+            address: true,
+            taxIdNumber: true,
+            image: true,
+            emailVerified: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -103,16 +169,15 @@ export async function getInvoices(
     result = { invoices: [], newOffset: null, totalInvoices: 0 };
   } else {
     // Równoległe zapytania dla lepszej wydajności
+    const whereClause = buildWhereClause();
+    const orderBy = buildOrderBy();
+
     const [totalInvoices, moreInvoices] = await Promise.all([
       db.invoice.count({
-        where: {
-          creatorId: user.id,
-        },
+        where: whereClause,
       }),
       db.invoice.findMany({
-        where: {
-          creatorId: user.id,
-        },
+        where: whereClause,
         select: {
           id: true,
           token: true,
@@ -126,7 +191,6 @@ export async function getInvoices(
           updatedAt: true,
           creatorId: true,
           clientId: true,
-          file: true,
           fileBase64: true,
           fileName: true,
           contentType: true,
@@ -143,12 +207,23 @@ export async function getInvoices(
               creatorId: true,
             },
           },
+          creator: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phoneNumber: true,
+              address: true,
+              taxIdNumber: true,
+              image: true,
+              emailVerified: true,
+              password: true,
+            },
+          },
         },
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy,
         skip: offset,
-        take: 10, // Zwiększamy limit na stronę dla lepszej wydajności
+        take: 10,
       }),
     ]);
 
@@ -329,7 +404,7 @@ export async function getClients(
 }
 
 export async function getAnalyticData(): Promise<{
-  invoices: (Omit<Invoice, "file"> & { client: Client })[];
+  invoices: InvoiceType[];
   clients: Client[];
 }> {
   const session = await getAuthSession();
@@ -339,7 +414,7 @@ export async function getAnalyticData(): Promise<{
   const cached = getCachedAnalytics(session.user.id);
   if (cached) {
     return cached as {
-      invoices: (Omit<Invoice, "file"> & { client: Client })[];
+      invoices: InvoiceType[];
       clients: Client[];
     };
   }
@@ -378,6 +453,18 @@ export async function getAnalyticData(): Promise<{
             taxIdNumber: true,
             createdAt: true,
             creatorId: true,
+          },
+        },
+        creator: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phoneNumber: true,
+            address: true,
+            taxIdNumber: true,
+            image: true,
+            emailVerified: true,
           },
         },
       },

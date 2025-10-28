@@ -1,12 +1,16 @@
 import { Client, Invoice, User } from "@prisma/client";
 
+export type SafeUser = Omit<User, "password">;
+
 export type ExtendedInvoice = Omit<Invoice, "file"> & {
   client: Client;
-  creator: User;
+  creator: SafeUser;
+  fileBase64?: string | null;
 };
 
 export type InvoiceType = Omit<Invoice, "file"> & {
   client: Client;
+  creator: SafeUser;
 };
 
 export type SendEmailToClientType = {

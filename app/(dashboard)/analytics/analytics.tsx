@@ -4,9 +4,11 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Analytic from "@/app/(dashboard)/analytics/analytic";
 import { getAnalytics } from "@/lib/utils";
-import RevenueChart from "@/components/analytics/RevenueChart";
-import InvoiceStatusChart from "@/components/analytics/InvoiceStatusChart";
-import TimeFilter, { TimePeriod } from "@/components/analytics/TimeFilter";
+import RevenueChart from "@/app/features/analytics/components/RevenueChart";
+import InvoiceStatusChart from "@/app/features/analytics/components/InvoiceStatusChart";
+import TimeFilter, {
+  TimePeriod,
+} from "@/app/features/analytics/components/TimeFilter";
 import {
   TrendingUp,
   BarChart3,

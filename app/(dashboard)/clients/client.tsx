@@ -1,3 +1,5 @@
+"use client";
+
 import React, { startTransition } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +31,57 @@ import { useRouter } from "next/navigation";
 function Client({ client, index }: { client: ClientType; index: number }) {
   let timeout: NodeJS.Timeout | undefined = undefined;
   const router = useRouter();
+
+  const handleDeleteClient = async () => {
+    if (timeout) return;
+    const t = toast.promise(
+      () => {
+        return new Promise((resolve) => {
+          timeout = setTimeout(async () => {
+            try {
+              await axios.delete("/api/client", {
+                data: { id: client.id },
+              });
+              resolve("Success");
+              toast.dismiss(t);
+              toast.success("Pomyślnie usunięto klienta.");
+            } catch (err) {
+              timeout = undefined;
+
+              toast.dismiss(t);
+              if (err instanceof AxiosError) {
+                if (err.response?.status === 404) {
+                  return toast.info(
+                    "Klient którego chcesz usunąć, nie istnieje."
+                  );
+                }
+              }
+
+              return toast.error("Coś poszło nie tak.", {
+                description:
+                  "Wystąpił błąd podczas usuwania klienta. Spróbuj ponownie później.",
+              });
+            }
+            startTransition(() => {
+              router.refresh();
+            });
+            timeout = undefined;
+          }, 5000);
+        });
+      },
+      {
+        success: "Pomyślnie usunięto klienta z Twojego konta.",
+        loading: "Trwa usuwanie klienta.",
+        action: {
+          label: "Cofnij",
+          onClick: () => {
+            clearTimeout(timeout);
+            timeout = undefined;
+          },
+        },
+      }
+    );
+  };
 
   return (
     <TableRow className="hover:bg-muted/30 transition-colors duration-200 border-0">
@@ -75,7 +128,6 @@ function Client({ client, index }: { client: ClientType; index: number }) {
               className="h-9 w-9 hover:bg-muted/80 transition-colors duration-200"
             >
               <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">Otwórz menu</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -118,57 +170,7 @@ function Client({ client, index }: { client: ClientType; index: number }) {
                     type="submit"
                     variant="destructive"
                     className="w-full sm:w-auto"
-                    onClick={async () => {
-                      if (timeout) return;
-                      const t = toast.promise(
-                        () => {
-                          return new Promise((resolve) => {
-                            timeout = setTimeout(async () => {
-                              try {
-                                await axios.delete("/api/client", {
-                                  data: { id: client.id },
-                                });
-                                resolve("Success");
-                                toast.dismiss(t);
-                                toast.success("Pomyślnie usunięto klienta.");
-                              } catch (err) {
-                                timeout = undefined;
-
-                                toast.dismiss(t);
-                                if (err instanceof AxiosError) {
-                                  if (err.response?.status === 404) {
-                                    return toast.info(
-                                      "Klient którego chcesz usunąć, nie istnieje."
-                                    );
-                                  }
-                                }
-
-                                return toast.error("Coś poszło nie tak.", {
-                                  description:
-                                    "Wystąpił błąd podczas usuwania klienta. Spróbuj ponownie później.",
-                                });
-                              }
-                              startTransition(() => {
-                                router.refresh();
-                              });
-                              timeout = undefined;
-                            }, 5000);
-                          });
-                        },
-                        {
-                          success:
-                            "Pomyślnie usunięto klienta z Twojego konta.",
-                          loading: "Trwa usuwanie klienta.",
-                          action: {
-                            label: "Cofnij",
-                            onClick: () => {
-                              clearTimeout(timeout);
-                              timeout = undefined;
-                            },
-                          },
-                        }
-                      );
-                    }}
+                    onClick={handleDeleteClient}
                   >
                     Usuń klienta
                   </Button>

@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import Loader from "@/components/loader";
+import Loader from "@/app/shared/components/loader";
 import ClientsCardContent from "./clientsCardContent";
 
 export default async function Clients({
