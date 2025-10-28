@@ -2,7 +2,7 @@
 
 import React, { useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { GoogleIcon } from "@/components/icons";
+import { GoogleIcon } from "@/app/shared/components/icons";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -34,7 +34,7 @@ export default function Page() {
 
   const loginWithGoogle = async () => {
     try {
-      await signIn("google", { callbackUrl: "/" });
+      await signIn("google", { callbackUrl: "/invoices" });
     } catch (error) {
       toast.error(
         "Wystąpił błąd w trakcie logowania z pomocą konta Google. Spróbuj innej metody logowania."
@@ -66,7 +66,7 @@ export default function Page() {
 
           throw new Error(result.error);
         } else if (result?.ok) {
-          router.push("/");
+          router.push("/invoices");
           toast.success("Pomyślnie zalogowano.");
         }
       } catch (error) {
@@ -102,16 +102,16 @@ export default function Page() {
                     <FormLabel className="text-sm font-medium">
                       E-mail
                     </FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <FormControl>
                         <Input
                           placeholder="example@fakturly.pl"
                           className="pl-10 h-11 bg-background/50 border-border/50 focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                           {...field}
                         />
-                      </div>
-                    </FormControl>
+                      </FormControl>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -123,33 +123,33 @@ export default function Page() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-medium">Hasło</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <FormControl>
                         <Input
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••••"
                           className="pl-10 pr-10 h-11 bg-background/50 border-border/50 focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                           {...field}
                         />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 p-0 hover:bg-transparent"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          {showPassword ? (
-                            <EyeOff className="h-4 w-4 text-muted-foreground" />
-                          ) : (
-                            <Eye className="h-4 w-4 text-muted-foreground" />
-                          )}
-                          <span className="sr-only">
-                            {showPassword ? "Ukryj hasło" : "Pokaż hasło"}
-                          </span>
-                        </Button>
-                      </div>
-                    </FormControl>
+                      </FormControl>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 p-0 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        )}
+                        <span className="sr-only">
+                          {showPassword ? "Ukryj hasło" : "Pokaż hasło"}
+                        </span>
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}

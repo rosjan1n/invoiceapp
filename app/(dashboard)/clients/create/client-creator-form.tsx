@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
 import axios, { AxiosError } from "axios";
+import { useCSRF } from "@/app/shared/hooks/use-csrf";
 import { clientFormSchema } from "@/lib/validators/validators";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -231,6 +232,7 @@ function ClientCreatorForm() {
     },
   });
   const router = useRouter();
+  const { getCSRFHeaders } = useCSRF();
 
   const { mutate: saveClient, isPending } = useMutation({
     mutationFn: async ({
@@ -247,7 +249,11 @@ function ClientCreatorForm() {
         phoneNumber,
         taxIdNumber,
       };
-      const { data } = await axios.post("/api/client", payload);
+      const { data } = await axios.post("/api/client", payload, {
+        headers: {
+          ...getCSRFHeaders(),
+        },
+      });
       return data;
     },
     onError: (err) => {

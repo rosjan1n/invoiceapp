@@ -3,12 +3,15 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import React from "react";
 import { cn } from "@/lib/utils";
-import Provider from "@/components/Provider";
+import Provider from "@/components/layout/Provider";
 import { Toaster } from "sonner";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "@/components/layout/theme-provider";
 
 const inter = Inter({
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -60,7 +63,10 @@ export default function RootLayout({
   return (
     <html lang="pl">
       <body
-        className={cn(inter.className, "flex flex-col min-h-screen w-full")}
+        className={cn(
+          inter.variable,
+          "font-sans flex flex-col min-h-screen w-full"
+        )}
       >
         <ThemeProvider
           attribute="class"

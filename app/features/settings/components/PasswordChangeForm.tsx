@@ -9,21 +9,21 @@ import {
   FormLabel,
   FormMessage,
   FormDescription,
-} from "./ui/form";
+} from "../../../../components/ui/form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
-import { Separator } from "./ui/separator";
+import { Input } from "../../../../components/ui/input";
+import { Button } from "../../../../components/ui/button";
+import { Badge } from "../../../../components/ui/badge";
+import { Separator } from "../../../../components/ui/separator";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "./ui/card";
+} from "../../../../components/ui/card";
 
 import { useTransition } from "react";
 import { toast } from "sonner";
@@ -175,8 +175,8 @@ export default function PasswordChangeForm() {
                     <Lock className="h-4 w-4" />
                     Aktualne hasło *
                   </FormLabel>
-                  <FormControl>
-                    <div className="relative">
+                  <div className="relative">
+                    <FormControl>
                       <Input
                         type={showCurrentPassword ? "text" : "password"}
                         placeholder="Wprowadź aktualne hasło"
@@ -187,23 +187,23 @@ export default function PasswordChangeForm() {
                           setHasChanges(true);
                         }}
                       />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-11 px-3 py-2 hover:bg-transparent"
-                        onClick={() =>
-                          setShowCurrentPassword(!showCurrentPassword)
-                        }
-                      >
-                        {showCurrentPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </FormControl>
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-11 px-3 py-2 hover:bg-transparent"
+                      onClick={() =>
+                        setShowCurrentPassword(!showCurrentPassword)
+                      }
+                    >
+                      {showCurrentPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
                   <FormDescription>
                     Wprowadź swoje aktualne hasło aby potwierdzić tożsamość
                   </FormDescription>
@@ -230,8 +230,8 @@ export default function PasswordChangeForm() {
                       <Key className="h-4 w-4" />
                       Nowe hasło *
                     </FormLabel>
-                    <FormControl>
-                      <div className="relative">
+                    <div className="relative">
+                      <FormControl>
                         <Input
                           type={showNewPassword ? "text" : "password"}
                           placeholder="Wprowadź nowe hasło"
@@ -242,21 +242,21 @@ export default function PasswordChangeForm() {
                             setHasChanges(true);
                           }}
                         />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-11 px-3 py-2 hover:bg-transparent"
-                          onClick={() => setShowNewPassword(!showNewPassword)}
-                        >
-                          {showNewPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </FormControl>
+                      </FormControl>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-11 px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                      >
+                        {showNewPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
                     <FormDescription>
                       Hasło musi mieć co najmniej 8 znaków, w tym wielką literę,
                       małą literę i cyfrę
@@ -366,8 +366,8 @@ export default function PasswordChangeForm() {
                     <CheckCircle className="h-4 w-4" />
                     Potwierdź nowe hasło *
                   </FormLabel>
-                  <FormControl>
-                    <div className="relative">
+                  <div className="relative">
+                    <FormControl>
                       <Input
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="Potwierdź nowe hasło"
@@ -378,23 +378,23 @@ export default function PasswordChangeForm() {
                           setHasChanges(true);
                         }}
                       />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-11 px-3 py-2 hover:bg-transparent"
-                        onClick={() =>
-                          setShowConfirmPassword(!showConfirmPassword)
-                        }
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </FormControl>
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-11 px-3 py-2 hover:bg-transparent"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
                   <FormDescription>
                     Wprowadź ponownie nowe hasło aby potwierdzić
                   </FormDescription>

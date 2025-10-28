@@ -1,7 +1,7 @@
-import AddressFormSettings from "@/components/AddressFormSettings";
-import UserInfoForm from "@/components/UserInfoForm";
-import PasswordChangeForm from "@/components/PasswordChangeForm";
-import AccountSettingsForm from "@/components/AccountSettingsForm";
+import AddressFormSettings from "@/app/features/settings/components/AddressFormSettings";
+import UserInfoForm from "@/app/features/settings/components/UserInfoForm";
+import PasswordChangeForm from "@/app/features/settings/components/PasswordChangeForm";
+import AccountSettingsForm from "@/app/features/settings/components/AccountSettingsForm";
 import { getAuthSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import React from "react";
@@ -72,7 +72,7 @@ export default async function Page() {
                   initialData={{
                     name: session.user.name,
                     email: session.user.email,
-                    phoneNumber: null, // phoneNumber nie istnieje w typie użytkownika
+                    phoneNumber: session.user.phoneNumber,
                     image: session.user.image,
                   }}
                 />

@@ -1,3 +1,5 @@
+"use client";
+
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { invoiceType } from "./invoice-creator-form";
 import {

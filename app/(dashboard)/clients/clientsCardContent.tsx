@@ -1,11 +1,11 @@
 import { getClients } from "@/lib/db";
-import ClientsTable from "./clientsTable";
-import Pagination from "@/components/pagination";
+import Pagination from "@/app/shared/components/pagination";
 import { CardContent } from "@/components/ui/card";
 import { Users, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import ClientsTable from "@/app/(dashboard)/clients/clientsTable";
 
 export default async function ClientsCardContent({
   searchParams,

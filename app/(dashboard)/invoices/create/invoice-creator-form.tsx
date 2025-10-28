@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { useMutation } from "@tanstack/react-query";
 import axios, { AxiosError } from "axios";
+import { useCSRF } from "@/app/shared/hooks/use-csrf";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -62,6 +63,7 @@ function InvoiceCreatorForm({
     },
   });
   const router = useRouter();
+  const { getCSRFHeaders } = useCSRF();
 
   const { mutate: saveInvoice, isPending } = useMutation({
     mutationFn: async ({
@@ -72,14 +74,22 @@ function InvoiceCreatorForm({
       products,
       clientId,
     }: invoiceType) => {
-      return await axios.post("/api/invoice", {
-        exemptTax,
-        invoiceId,
-        issuedAt,
-        soldAt,
-        products,
-        clientId,
-      });
+      return await axios.post(
+        "/api/invoice",
+        {
+          exemptTax,
+          invoiceId,
+          issuedAt,
+          soldAt,
+          products,
+          clientId,
+        },
+        {
+          headers: {
+            ...getCSRFHeaders(),
+          },
+        }
+      );
     },
     onError: (err) => {
       if (err instanceof AxiosError) {

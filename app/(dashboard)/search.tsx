@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/icons";
+import { Spinner } from "@/app/shared/components/icons";
 import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";

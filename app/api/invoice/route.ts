@@ -6,6 +6,8 @@ import { Invoice } from "@prisma/client";
 import chromium from "@sparticuz/chromium";
 import { z } from "zod";
 import { invalidateUserCache } from "@/lib/cache";
+import { validateCSRFTokenFromRequest } from "@/lib/csrf";
+import { sanitizeInput, sanitizeForDatabase } from "@/lib/security";
 
 export async function POST(req: Request) {
   let browser;
@@ -13,6 +15,11 @@ export async function POST(req: Request) {
   try {
     const session = await getAuthSession();
     if (!session?.user) return new Response("Unauthorized", { status: 401 });
+
+    // Walidacja CSRF
+    if (!validateCSRFTokenFromRequest(req as any)) {
+      return new Response("Invalid CSRF token", { status: 403 });
+    }
 
     const body = await req.json();
 

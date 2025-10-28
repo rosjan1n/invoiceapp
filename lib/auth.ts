@@ -111,6 +111,7 @@ export const authOptions: NextAuthOptions = {
               email: true,
               password: true,
               image: true,
+              phoneNumber: true,
             },
           });
 
@@ -140,6 +141,7 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             email: user.email,
             image: user.image,
+            phoneNumber: user.phoneNumber,
           };
         } catch (error) {
           console.error("Login error:", error);

@@ -9,21 +9,21 @@ import {
   FormLabel,
   FormMessage,
   FormDescription,
-} from "./ui/form";
+} from "../../../../components/ui/form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
-import { Separator } from "./ui/separator";
+import { Input } from "../../../../components/ui/input";
+import { Button } from "../../../../components/ui/button";
+import { Badge } from "../../../../components/ui/badge";
+import { Separator } from "../../../../components/ui/separator";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "./ui/card";
+} from "../../../../components/ui/card";
 import axios from "axios";
 import { useTransition } from "react";
 import { toast } from "sonner";
@@ -291,8 +291,8 @@ export default function UserInfoForm({
                         <Phone className="h-4 w-4" />
                         Numer telefonu
                       </FormLabel>
-                      <FormControl>
-                        <div className="relative">
+                      <div className="relative">
+                        <FormControl>
                           <Input
                             type={showPhoneNumber ? "text" : "password"}
                             placeholder="+48 123 456 789"
@@ -303,21 +303,21 @@ export default function UserInfoForm({
                               setHasChanges(true);
                             }}
                           />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-11 px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowPhoneNumber(!showPhoneNumber)}
-                          >
-                            {showPhoneNumber ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </FormControl>
+                        </FormControl>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-11 px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowPhoneNumber(!showPhoneNumber)}
+                        >
+                          {showPhoneNumber ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                       <FormDescription>
                         Format międzynarodowy (opcjonalne)
                       </FormDescription>

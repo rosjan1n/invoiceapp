@@ -1,3 +1,5 @@
+"use client";
+
 import React, { startTransition } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +17,7 @@ import "moment/locale/pl";
 import { Badge } from "@/components/ui/badge";
 import { sumAllProducts } from "@/lib/utils";
 import Link from "next/link";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogClose,
@@ -30,9 +33,70 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-function Invoice({ invoice, index }: { invoice: InvoiceType; index: number }) {
+function Invoice({
+  invoice,
+  index,
+  isSelected = false,
+  onSelectionChange,
+}: {
+  invoice: InvoiceType;
+  index: number;
+  isSelected?: boolean;
+  onSelectionChange?: (selected: boolean) => void;
+}) {
   let timeout: NodeJS.Timeout | undefined = undefined;
   const router = useRouter();
+
+  const handleDeleteInvoice = async () => {
+    if (timeout) return;
+    const t = toast.promise(
+      () => {
+        return new Promise((resolve) => {
+          timeout = setTimeout(async () => {
+            try {
+              await axios.delete("/api/invoice", {
+                data: { id: invoice.id },
+              });
+              resolve("Success");
+              toast.dismiss(t);
+              toast.success("Pomyślnie usunięto fakturę.");
+            } catch (err) {
+              timeout = undefined;
+
+              toast.dismiss(t);
+              if (err instanceof AxiosError) {
+                if (err.response?.status === 404) {
+                  return toast.info(
+                    "Faktura którą chcesz usunąć, nie istnieje."
+                  );
+                }
+              }
+
+              return toast.error("Coś poszło nie tak.", {
+                description:
+                  "Wystąpił błąd podczas usuwania faktury. Spróbuj ponownie później.",
+              });
+            }
+            startTransition(() => {
+              router.refresh();
+            });
+            timeout = undefined;
+          }, 5000);
+        });
+      },
+      {
+        success: "Pomyślnie usunięto fakturę z Twojego konta.",
+        loading: "Trwa usuwanie faktury.",
+        action: {
+          label: "Cofnij",
+          onClick: () => {
+            clearTimeout(timeout);
+            timeout = undefined;
+          },
+        },
+      }
+    );
+  };
 
   const getStatusVariant = (status: string | null) => {
     switch (status) {
@@ -58,6 +122,11 @@ function Invoice({ invoice, index }: { invoice: InvoiceType; index: number }) {
 
   return (
     <TableRow className="hover:bg-muted/30 transition-colors duration-200 border-0">
+      <TableCell className="w-12">
+        {onSelectionChange && (
+          <Checkbox checked={isSelected} onCheckedChange={onSelectionChange} />
+        )}
+      </TableCell>
       <TableCell className="font-medium py-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
@@ -132,7 +201,7 @@ function Invoice({ invoice, index }: { invoice: InvoiceType; index: number }) {
             <DropdownMenuItem asChild className="cursor-pointer">
               <Link
                 className="flex items-center gap-3 w-full"
-                href={`/${invoice.id}`}
+                href={`invoices/${invoice.id}`}
               >
                 <ExternalLink className="w-4 h-4" />
                 <span>Otwórz</span>
@@ -168,57 +237,7 @@ function Invoice({ invoice, index }: { invoice: InvoiceType; index: number }) {
                     type="submit"
                     variant="destructive"
                     className="w-full sm:w-auto"
-                    onClick={async () => {
-                      if (timeout) return;
-                      const t = toast.promise(
-                        () => {
-                          return new Promise((resolve) => {
-                            timeout = setTimeout(async () => {
-                              try {
-                                await axios.delete("/api/invoice", {
-                                  data: { id: invoice.id },
-                                });
-                                resolve("Success");
-                                toast.dismiss(t);
-                                toast.success("Pomyślnie usunięto fakturę.");
-                              } catch (err) {
-                                timeout = undefined;
-
-                                toast.dismiss(t);
-                                if (err instanceof AxiosError) {
-                                  if (err.response?.status === 404) {
-                                    return toast.info(
-                                      "Faktura którą chcesz usunąć, nie istnieje."
-                                    );
-                                  }
-                                }
-
-                                return toast.error("Coś poszło nie tak.", {
-                                  description:
-                                    "Wystąpił błąd podczas usuwania faktury. Spróbuj ponownie później.",
-                                });
-                              }
-                              startTransition(() => {
-                                router.refresh();
-                              });
-                              timeout = undefined;
-                            }, 5000);
-                          });
-                        },
-                        {
-                          success:
-                            "Pomyślnie usunięto fakturę z Twojego konta.",
-                          loading: "Trwa usuwanie faktury.",
-                          action: {
-                            label: "Cofnij",
-                            onClick: () => {
-                              clearTimeout(timeout);
-                              timeout = undefined;
-                            },
-                          },
-                        }
-                      );
-                    }}
+                    onClick={handleDeleteInvoice}
                   >
                     Usuń fakturę
                   </Button>

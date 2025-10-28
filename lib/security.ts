@@ -1,105 +1,147 @@
-import { headers } from "next/headers";
+import { randomBytes, createHmac } from "crypto";
 
-// Rate limiting storage (w produkcji użyj Redis)
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
-
-export interface RateLimitConfig {
-  windowMs: number;
-  maxAttempts: number;
-  identifier?: string;
+// CSRF Protection
+export function generateCSRFToken(): string {
+  return randomBytes(32).toString("hex");
 }
+
+export function generateCSRFTokenWithSecret(secret: string): string {
+  const token = randomBytes(32).toString("hex");
+  const hmac = createHmac("sha256", secret);
+  hmac.update(token);
+  return `${token}.${hmac.digest("hex")}`;
+}
+
+export function validateCSRFToken(token: string, secret: string): boolean {
+  if (!token || !secret) return false;
+
+  const parts = token.split(".");
+  if (parts.length !== 2) return false;
+
+  const [tokenPart, signature] = parts;
+  const hmac = createHmac("sha256", secret);
+  hmac.update(tokenPart);
+  const expectedSignature = hmac.digest("hex");
+
+  return signature === expectedSignature;
+}
+
+// Rate Limiting
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 export function checkRateLimit(
   identifier: string,
-  config: RateLimitConfig
-): { allowed: boolean; remaining: number; resetTime: number } {
+  maxRequests: number = 100,
+  windowMs: number = 15 * 60 * 1000 // 15 minut
+): boolean {
   const now = Date.now();
-  const key = `${identifier}:${config.identifier || "default"}`;
-  const stored = rateLimitStore.get(key);
+  const key = identifier;
+  const current = rateLimitMap.get(key);
 
-  if (!stored || now > stored.resetTime) {
-    const resetTime = now + config.windowMs;
-    rateLimitStore.set(key, { count: 1, resetTime });
-    return {
-      allowed: true,
-      remaining: config.maxAttempts - 1,
-      resetTime,
-    };
+  if (!current) {
+    rateLimitMap.set(key, { count: 1, resetTime: now + windowMs });
+    return true;
   }
 
-  if (stored.count >= config.maxAttempts) {
-    return {
-      allowed: false,
-      remaining: 0,
-      resetTime: stored.resetTime,
-    };
+  if (now > current.resetTime) {
+    rateLimitMap.set(key, { count: 1, resetTime: now + windowMs });
+    return true;
   }
 
-  stored.count++;
-  return {
-    allowed: true,
-    remaining: config.maxAttempts - stored.count,
-    resetTime: stored.resetTime,
-  };
+  if (current.count >= maxRequests) {
+    return false;
+  }
+
+  current.count++;
+  return true;
 }
 
-export function getClientIP(): string {
-  const headersList = headers();
-  return (
-    headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    headersList.get("x-real-ip") ||
-    headersList.get("cf-connecting-ip") ||
-    "unknown"
-  );
-}
-
+// Input Sanitization
 export function sanitizeInput(input: string): string {
   return input
     .trim()
     .replace(/[<>]/g, "") // Usuń potencjalne tagi HTML
-    .substring(0, 1000); // Ogranicz długość
+    .replace(/javascript:/gi, "") // Usuń potencjalne skrypty
+    .replace(/on\w+=/gi, ""); // Usuń potencjalne event handlery
 }
 
-export function validateEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email) && email.length <= 255;
-}
+// Password Strength Validation
+export function validatePasswordStrength(password: string): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
 
-export function generateSecureToken(length: number = 32): string {
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let result = "";
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  if (password.length < 8) {
+    errors.push("Hasło musi mieć co najmniej 8 znaków");
   }
-  return result;
+
+  if (!/[a-z]/.test(password)) {
+    errors.push("Hasło musi zawierać co najmniej jedną małą literę");
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    errors.push("Hasło musi zawierać co najmniej jedną wielką literę");
+  }
+
+  if (!/\d/.test(password)) {
+    errors.push("Hasło musi zawierać co najmniej jedną cyfrę");
+  }
+
+  if (!/[@$!%*?&]/.test(password)) {
+    errors.push(
+      "Hasło musi zawierać co najmniej jeden znak specjalny (@$!%*?&)"
+    );
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
 }
 
-export function logSecurityEvent(
-  event: string,
-  details: Record<string, unknown>,
-  severity: "low" | "medium" | "high" = "medium"
-): void {
-  const timestamp = new Date().toISOString();
-  const ip = getClientIP();
-
-  console.log(`[SECURITY-${severity.toUpperCase()}] ${timestamp} - ${event}`, {
-    ip,
-    ...details,
-  });
+// XSS Protection
+export function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
-// Cleanup old rate limit entries (call this periodically)
+// SQL Injection Protection (dla Prisma)
+export function sanitizeForDatabase(input: string): string {
+  return input
+    .trim()
+    .replace(/['"\\]/g, "") // Usuń potencjalne znaki SQL
+    .substring(0, 255); // Limit długości
+}
+
+// Session Security
+export function generateSecureSessionId(): string {
+  return randomBytes(32).toString("hex");
+}
+
+// IP Validation
+export function isValidIP(ip: string): boolean {
+  const ipv4Regex =
+    /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
+
+  return ipv4Regex.test(ip) || ipv6Regex.test(ip);
+}
+
+// Cleanup expired rate limit entries
 export function cleanupRateLimit(): void {
   const now = Date.now();
-  rateLimitStore.forEach((value, key) => {
+  const entries = Array.from(rateLimitMap.entries());
+  for (const [key, value] of entries) {
     if (now > value.resetTime) {
-      rateLimitStore.delete(key);
+      rateLimitMap.delete(key);
     }
-  });
+  }
 }
 
 // Run cleanup every 5 minutes
-if (typeof window === "undefined") {
-  setInterval(cleanupRateLimit, 5 * 60 * 1000);
-}
+setInterval(cleanupRateLimit, 5 * 60 * 1000);

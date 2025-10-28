@@ -26,30 +26,35 @@ Projekt został zbudowany z użyciem następujących technologii:
 Aby uruchomić projekt lokalnie, wykonaj poniższe kroki:
 
 1. Sklonuj repozytorium:
-   
+
    ```bash
    git clone https://github.com/danielkropka/invoiceapp.git
-    ```
+   ```
+
 2. Przejdź do katalogu projektu:
-   
-    ```
-    cd invoiceapp
-    ```
+
+   ```
+   cd invoiceapp
+   ```
+
 3. Zainstaluj biblioteki:
-   
-    ```
-    npm i
-    ```
+
+   ```
+   npm i
+   ```
+
 4. Skonfiguruj zmienne środowiskowe:
-   
 
 - Utwórz plik .env w katalogu głównym projektu.
 - Dodaj dane do połączenia z MongoDB, konfiguracji Resend i inne niezbędne klucze API.
+
 5. Uruchom aplikację w trybie deweloperskim:
-  
-    ```bash
-    npm run dev
-    ```
+
+   ```bash
+   npm run dev
+   ```
+
 ## Przyszłe Plany
+
 - Wprowadzenie wielojęzyczności i wsparcia dla różnych walut
 - Dodanie bardziej rozbudowanych raportów i analiz w dashboardzie

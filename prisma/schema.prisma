@@ -24,7 +24,7 @@ type Address {
   street     String
   postalCode String
   city       String
-  country    String
+  country    String?
 }
 
 type Product {
@@ -96,6 +96,8 @@ model Client {
 
   @@index([creatorId, createdAt])
   @@index([email])
+  @@index([creatorId, email])
+  @@index([name])
 }
 
 model Invoice {
@@ -125,4 +127,9 @@ model Invoice {
   @@index([creatorId, createdAt])
   @@index([creatorId, status])
   @@index([clientId])
+  @@index([invoiceId])
+  @@index([token])
+  @@index([issuedAt])
+  @@index([status, createdAt])
+  @@index([creatorId, status, createdAt])
 }
